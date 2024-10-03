@@ -4,6 +4,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import connDB from './utils/db.js'
 import userRouter from './routes/user.routes.js'
+import companyRouter from './routes/company.routes.js'
 dotenv.config({})
 const app = express()
 
@@ -19,6 +20,7 @@ app.use(cors(corsOption))
 const PORT = process.env.PORT
 //api
 app.use('/api/user', userRouter)
+app.use('/api/company', companyRouter)
 app.listen(PORT, () => {
     connDB()
     console.log('server running in port :', PORT)
