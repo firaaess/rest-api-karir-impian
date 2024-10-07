@@ -8,7 +8,7 @@ export const register = async (req,res) => {
         const {fullname, email, phoneNumber, password, role } = req.body
         if (!fullname || !email || !phoneNumber || !password || !role) {
             return res.status(400).json({
-                message:'something is missing',
+                message:'semua data harus terisi',
                 success:false
             })
         }
