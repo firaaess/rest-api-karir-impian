@@ -15,18 +15,13 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 const corsOption = {
-    origin:'192.168.18.227',
+    origin:'192.168.18.227:5173',
     credential:true
 }
 app.use(cors(corsOption))
 const PORT = process.env.PORT
 //api
-app.get('/', (req, res) => {
-    res.status(200).json({
-        message:'server running',
-        success: true   
-    })
-})
+
 app.use('/api/user', userRouter)
 app.use('/api/company', companyRouter)
 app.use('/api/job', jobRouter)
