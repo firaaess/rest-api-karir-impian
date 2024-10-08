@@ -7,26 +7,29 @@ import userRouter from './routes/user.routes.js'
 import companyRouter from './routes/company.routes.js'
 import jobRouter from './routes/job.routes.js'
 import applicationRouter from './routes/application.routes.js'
-dotenv.config({})
+
+dotenv.config()
 const app = express()
 
-// middleware
+// Middleware
 app.use(express.json())
-app.use(express.urlencoded({extended:true}))
+app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
-const corsOption = {
-    origin:'192.168.18.227:5173',
-    credential:true
-}
-app.use(cors(corsOption))
-const PORT = process.env.PORT
-//api
+app.use(cors({
+    origin:'http://localhost:5173',
+    credentials:true
 
+}))
+
+const PORT = process.env.PORT
+
+// API Routes
 app.use('/api/user', userRouter)
 app.use('/api/company', companyRouter)
 app.use('/api/job', jobRouter)
 app.use('/api/application', applicationRouter)
+
 app.listen(PORT, () => {
-    connDB()
-    console.log('server running in port :', PORT)
+  connDB()
+  console.log('Server running on port:', PORT)
 })
