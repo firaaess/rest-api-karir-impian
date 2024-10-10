@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const register = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, password, role } = req.body;
@@ -14,10 +16,16 @@ export const register = async (req, res) => {
                 success: false
             });
         };
+
+         if (!emailRegex.test(email)) {
+        return res.status(400).json({
+            message: "Invalid email format",
+            success: false
+        });
+    }
         const file = req.file;
         const fileUri = getDataUri(file);
         const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-
         const user = await User.findOne({ email });
         if (user) {
             return res.status(400).json({
@@ -59,7 +67,7 @@ export const login = async (req, res) => {
         let user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({
-                message: "kesalahan email",
+                message: "akun tidak di temukan atau email salah",
                 success: false,
             })
         }
@@ -113,59 +121,70 @@ export const logout = async (req, res) => {
 }
 export const updateProfile = async (req, res) => {
     try {
-        const { fullname, email, phoneNumber, bio, skills } = req.body;
-        
-        const file = req.file;
-        // cloudinary ayega idhar
-        const fileUri = getDataUri(file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        const { fullname, email, phoneNumber, bio, skills, currentPassword, newPassword } = req.body;
 
-
-
-        let skillsArray;
-        if(skills){
-            skillsArray = skills.split(",");
-        }
         const userId = req.id; // middleware authentication
         let user = await User.findById(userId);
 
         if (!user) {
-            return res.status(400).json({
+            return res.status(404).json({
                 message: "akun tidak ditemukan",
                 success: false
-            })
-        }
-        // updating data
-        if(fullname) user.fullname = fullname
-        if(email) user.email = email
-        if(phoneNumber)  user.phoneNumber = phoneNumber
-        if(bio) user.profile.bio = bio
-        if(skills) user.profile.skills = skillsArray
-      
-        // resume comes later here...
-        if(cloudResponse){
-            user.profile.resume = cloudResponse.secure_url // save the cloudinary url
-            user.profile.resumeOriginalName = file.originalname // Save the original file name
+            });
         }
 
+        // Update fields if provided
+        if (fullname) user.fullname = fullname;
+        if (email) user.email = email;
+        if (phoneNumber) user.phoneNumber = phoneNumber;
+        if (bio) user.profile.bio = bio;
+
+        // Process skills if provided
+        if (skills && skills.trim()) {
+            user.profile.skills = skills.split(",").map(skill => skill.trim());
+        }
+
+        // Handle password update if provided
+        if (currentPassword && newPassword) {
+            const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!isPasswordMatch) {
+                return res.status(400).json({
+                    message: "password lama salah",
+                    success: false
+                });
+            }
+
+            // Hash new password and update it
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+
+        // Handle file upload if a file is provided
+        if (req.file) {
+            const fileUri = getDataUri(req.file);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            user.profile.profilePhoto = cloudResponse.secure_url; // Save the cloudinary URL
+            user.profile.profilePhotoOriginalName = req.file.originalname; // Save the original file name
+        }
 
         await user.save();
 
-        user = {
-            _id: user._id,
-            fullname: user.fullname,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            role: user.role,
-            profile: user.profile
-        }
-
         return res.status(200).json({
-            message:"berhasil update profile",
-            user,
-            success:true
-        })
+            message: "Profile updated successfully.",
+            user: {
+                _id: user._id,
+                fullname: user.fullname,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                role: user.role,
+                profile: user.profile
+            },
+            success: true
+        });
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        return res.status(500).json({
+            message: "Internal Server Error.",
+            success: false
+        });
     }
 }
