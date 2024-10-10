@@ -10,7 +10,7 @@ export const register = async (req, res) => {
          
         if (!fullname || !email || !phoneNumber || !password || !role) {
             return res.status(400).json({
-                message: "Something is missing",
+                message: "semua kolom harus terisi",
                 success: false
             });
         };
@@ -21,7 +21,7 @@ export const register = async (req, res) => {
         const user = await User.findOne({ email });
         if (user) {
             return res.status(400).json({
-                message: 'User already exist with this email.',
+                message: 'email tersebut sudah terdaftar',
                 success: false,
             })
         }
@@ -39,7 +39,7 @@ export const register = async (req, res) => {
         });
 
         return res.status(201).json({
-            message: "Account created successfully.",
+            message: "berhasil membuat akun",
             success: true
         });
     } catch (error) {
@@ -52,28 +52,28 @@ export const login = async (req, res) => {
         
         if (!email || !password || !role) {
             return res.status(400).json({
-                message: "Something is missing",
+                message: "semua kolom harus terisi",
                 success: false
             });
         };
         let user = await User.findOne({ email });
         if (!user) {
             return res.status(400).json({
-                message: "Incorrect email or password.",
+                message: "kesalahan email",
                 success: false,
             })
         }
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
             return res.status(400).json({
-                message: "Incorrect email or password.",
+                message: "kesalahan password",
                 success: false,
             })
         };
         // check role is correct or not
         if (role !== user.role) {
             return res.status(400).json({
-                message: "Account doesn't exist with current role.",
+                message: "role tidak sesuai",
                 success: false
             })
         };
@@ -93,7 +93,7 @@ export const login = async (req, res) => {
         }
 
         return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
-            message: `Welcome back ${user.fullname}`,
+            message: `selamat datang kembali ${user.fullname}`,
             user,
             success: true
         })
@@ -104,7 +104,7 @@ export const login = async (req, res) => {
 export const logout = async (req, res) => {
     try {
         return res.status(200).cookie("token", "", { maxAge: 0 }).json({
-            message: "Logged out successfully.",
+            message: "logout berhasil",
             success: true
         })
     } catch (error) {
@@ -131,7 +131,7 @@ export const updateProfile = async (req, res) => {
 
         if (!user) {
             return res.status(400).json({
-                message: "User not found.",
+                message: "akun tidak ditemukan",
                 success: false
             })
         }
@@ -161,7 +161,7 @@ export const updateProfile = async (req, res) => {
         }
 
         return res.status(200).json({
-            message:"Profile updated successfully.",
+            message:"berhasil update profile",
             user,
             success:true
         })
