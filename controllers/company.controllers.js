@@ -90,3 +90,23 @@ export const updateCompany = async (req, res) => {
         console.log(error)
     }
 }
+
+export const deleteCompany = async (req, res) => {
+    try {
+        const companyId = req.params.id
+        const company = await Company.findById(companyId)
+        if(!company){
+            return res.status(400).json({
+                message: 'perusahaan tidak di temukan',
+                success: false
+            })
+        }
+        await Company.findByIdAndDelete(companyId)
+        return res.status(200).json({
+            message: 'berhasil menghapus perusahaan',
+            success: true
+        })
+    } catch (error) {
+        console.log(error)
+    }
+}

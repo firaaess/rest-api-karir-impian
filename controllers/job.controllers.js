@@ -90,3 +90,30 @@ export const getAdminJobs = async (req, res) => {
         console.log(error)
     }
 }
+
+export const deleteJob = async (req, res) => {
+    try {
+        const jobId = req.params.id;
+        const job = await Job.findById(jobId);
+        
+        if (!job) {
+            return res.status(404).json({
+                message: 'pekerjaan tidak ditemukan',
+                success: false
+            });
+        }
+
+        await Job.findByIdAndDelete(jobId);
+
+        return res.status(200).json({
+            message: 'pekerjaan berhasil dihapus',
+            success: true
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: 'terjadi kesalahan saat menghapus pekerjaan',
+            success: false
+        });
+    }
+}

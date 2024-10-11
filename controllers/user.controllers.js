@@ -23,9 +23,9 @@ export const register = async (req, res) => {
             success: false
         });
     }
-        const file = req.file;
-        const fileUri = getDataUri(file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            const file = req.file;
+            const fileUri = getDataUri(file);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
         const user = await User.findOne({ email });
         if (user) {
             return res.status(400).json({
@@ -56,9 +56,9 @@ export const register = async (req, res) => {
 }
 export const login = async (req, res) => {
     try {
-        const { email, password, role } = req.body;
+        const { email, password} = req.body;
         
-        if (!email || !password || !role) {
+        if (!email || !password ) {
             return res.status(400).json({
                 message: "semua kolom harus terisi",
                 success: false
@@ -78,13 +78,13 @@ export const login = async (req, res) => {
                 success: false,
             })
         };
-        // check role is correct or not
-        if (role !== user.role) {
-            return res.status(400).json({
-                message: "role tidak sesuai",
-                success: false
-            })
-        };
+        // // check role is correct or not
+        // if (role !== user.role) {
+        //     return res.status(400).json({
+        //         message: "role tidak sesuai",
+        //         success: false
+        //     })
+        // };
 
         const tokenData = {
             userId: user._id
@@ -186,5 +186,51 @@ export const updateProfile = async (req, res) => {
             message: "Internal Server Error.",
             success: false
         });
+    }
+}
+
+export const deleteUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            return res.status(404).json({
+                message: 'akun tidak ditemukan',
+                success: false
+            });
+        }
+
+        await User.findByIdAndDelete(userId);
+
+        return res.status(200).json({
+            message: 'akun berhasil dihapus',
+            success: true
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: 'terjadi kesalahan saat menghapus akunn',
+            success: false
+        });
+    }
+}
+
+export const getAllUser = async (req, res) => {
+    try {
+        const userId = req.id
+        const users = await User.find({userId})
+        if(!users){
+            return res.status(404).json({
+                message: 'akun tidak ditemukan',
+                success: false
+            })
+        }
+        return res.status(200).json({
+            users,
+            success: true
+        })
+    } catch (error) {
+        console.log(error)
     }
 }
