@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
+import { joinWeb } from "../utils/msgEmail.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -57,7 +58,7 @@ export const register = async (req, res) => {
                 profilePhoto: profilePhotoUrl,
             }
         });
-
+        await joinWeb(email, fullname)
         return res.status(201).json({
             message: "Berhasil membuat akun",
             success: true
