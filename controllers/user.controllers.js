@@ -9,51 +9,68 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const register = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, password, role } = req.body;
-         
+
+        // Validasi input
         if (!fullname || !email || !phoneNumber || !password || !role) {
             return res.status(400).json({
-                message: "semua kolom harus terisi",
+                message: "Semua kolom harus terisi",
                 success: false
             });
-        };
-
-         if (!emailRegex.test(email)) {
-        return res.status(400).json({
-            message: "Invalid email format",
-            success: false
-        });
-    }
-            const file = req.file;
-            const fileUri = getDataUri(file);
-            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-        const user = await User.findOne({ email });
-        if (user) {
-            return res.status(400).json({
-                message: 'email tersebut sudah terdaftar',
-                success: false,
-            })
         }
+
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                message: "Format email tidak valid",
+                success: false
+            });
+        }
+
+        // Cek apakah email sudah terdaftar
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                message: 'Email tersebut sudah terdaftar',
+                success: false,
+            });
+        }
+
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        let profilePhotoUrl = null;
+
+        // Jika file di-upload, proses upload ke Cloudinary
+        if (req.file) {
+            const fileUri = getDataUri(req.file);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            profilePhotoUrl = cloudResponse.secure_url; // Simpan URL foto profil
+        }
+
+        // Buat pengguna baru
         await User.create({
             fullname,
             email,
             phoneNumber,
             password: hashedPassword,
             role,
-            profile:{
-                profilePhoto:cloudResponse.secure_url,
+            profile: {
+                profilePhoto: profilePhotoUrl,
             }
         });
 
         return res.status(201).json({
-            message: "berhasil membuat akun",
+            message: "Berhasil membuat akun",
             success: true
         });
     } catch (error) {
-        console.log(error);
+        console.error(error); // Log error ke console
+        return res.status(500).json({
+            message: "Terjadi kesalahan pada server",
+            success: false
+        });
     }
-}
+};
+
 export const login = async (req, res) => {
     try {
         const { email, password} = req.body;
