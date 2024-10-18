@@ -32,6 +32,10 @@ const jobSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    isApproved:{
+        type:Boolean,
+        default: false
+    },
     company: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Company',

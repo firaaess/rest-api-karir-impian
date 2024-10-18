@@ -13,8 +13,8 @@ const applicationSchema = new mongoose.Schema({
     },
     status:{
         type:String,
-        enum:['pending', 'accepted', 'rejected'],
-        default:'pending'
+        enum:['proses', 'diterima', 'ditolak'],
+        default:'proses'
     }
 },{timestamps:true});
 export const Application  = mongoose.model("Application", applicationSchema);

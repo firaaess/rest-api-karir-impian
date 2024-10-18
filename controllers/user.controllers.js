@@ -96,13 +96,7 @@ export const login = async (req, res) => {
                 success: false,
             })
         };
-        // // check role is correct or not
-        // if (role !== user.role) {
-        //     return res.status(400).json({
-        //         message: "role tidak sesuai",
-        //         success: false
-        //     })
-        // };
+        
 
         const tokenData = {
             userId: user._id
@@ -121,6 +115,7 @@ export const login = async (req, res) => {
         return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
             message: `selamat datang kembali ${user.fullname}`,
             user,
+            token : token,
             success: true
         })
     } catch (error) {

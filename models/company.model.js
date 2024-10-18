@@ -16,12 +16,16 @@ const companySchema = new mongoose.Schema({
         type:String,
     },
     logo:{
-        type:String, //url to logo company 
+        type:String,
     },
     userId:{
         type:mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required:true
+    },
+    isApproved:{
+        type:Boolean,
+        default: false
     }
 }, {timestamps:true})
 
