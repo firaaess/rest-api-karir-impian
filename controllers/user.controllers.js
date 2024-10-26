@@ -43,7 +43,7 @@ export const register = async (req, res) => {
         // Jika file di-upload, proses upload ke Cloudinary
         if (req.file) {
             const fileUri = getDataUri(req.file);
-            const cloudResponse = cloudinary.uploader.upload(fileUri.content);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
             profilePhotoUrl = cloudResponse.secure_url; // Simpan URL foto profil
         }
 
@@ -175,7 +175,7 @@ export const updateProfile = async (req, res) => {
         if (req.file) {
             const fileUri = getDataUri(req.file);
             const cloudResponse =  cloudinary.uploader.upload(fileUri.content);
-            user.profile.profilePhoto = cloudResponse.secure_url; // Save the cloudinary URL
+            user.profile.profilePhoto = await cloudResponse.secure_url; // Save the cloudinary URL
             user.profile.profilePhotoOriginalName = req.file.originalname; // Save the original file name
         }
 
