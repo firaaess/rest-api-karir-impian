@@ -8,4 +8,4 @@ const connDB = async () => {
     }
 }
 
-export default connDB
+export default connDB   
