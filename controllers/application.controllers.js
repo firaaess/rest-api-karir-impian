@@ -135,18 +135,8 @@ export const updateStatus = async (req, res) => {
             });
         }
 
-        // Cek apakah pengguna adalah pemilik perusahaan
-        const userId = req.id; // ID pengguna yang melakukan permintaan
-        if (application.job.company.userId.toString() !== userId) {
-            return res.status(403).json({
-                message: 'Anda tidak memiliki izin',
-                success: false
-            });
-        }
-
         application.status = status.toLowerCase();
         await application.save();
-
         return res.status(200).json({
             message: "Berhasil mengupdate status",
             success: true

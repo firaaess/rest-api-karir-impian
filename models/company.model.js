@@ -24,8 +24,9 @@ const companySchema = new mongoose.Schema({
         required:true
     },
     isApproved:{
-        type:Boolean,
-        default: false
+        type:String,
+        enum:['proses', 'diterima', 'ditolak'],
+        default:'proses'
     }
 }, {timestamps:true})
 

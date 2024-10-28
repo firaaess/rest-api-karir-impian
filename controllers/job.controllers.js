@@ -26,12 +26,11 @@ export const postJob = async (req, res) => {
             title,
             description,
             requirements: requirements.split(","),
-            salary: Number(salary),
+            salary,
             location,
             jobType,
             experienceLevel: experience,
             position,
-            isApproved: false,
             company: companyId,
             created_by: userId,
         });
@@ -52,6 +51,7 @@ export const postJob = async (req, res) => {
 
 export const approveJob = async (req, res) => {
     try {
+        const {status} = req.body
         const jobId = req.params.id; // Ubah untuk menerima jobId
         const job = await Job.findById(jobId).populate('company'); // Ambil job dan populate company
 
@@ -72,7 +72,7 @@ export const approveJob = async (req, res) => {
         }
 
         // Set pekerjaan sebagai disetujui
-        job.isApproved = true; // Update status pekerjaan
+        job.isApproved = status // Update status pekerjaan
         await job.save(); // Simpan perubahan
 
         return res.status(200).json({
@@ -118,7 +118,7 @@ export const getAllJob = async (req, res) => {
                     { title: { $regex: keyword, $options: "i" } },
                     { description: { $regex: keyword, $options: "i" } }
                 ],
-                isApproved: true // Candidates can only see approved jobs
+                isApproved: 'diterima' // Candidates can only see approved jobs
             };
 
         const jobs = await Job.find(query).populate({
@@ -149,12 +149,14 @@ export const getAllJob = async (req, res) => {
 export const getJobById = async (req, res) => {
     try {
         const jobId = req.params.id;
-        const job = await Job.findById(jobId);
+        const job = await Job.findById(jobId).populate({
+            path:"applications"
+        });
         const userId = req.id;
         const user = await User.findById(userId);
 
         // Check if the job exists and if the user has access to it
-        if (!job || (user.role !== 'administrator' && user.role !== 'business' && !job.isApproved)) {
+        if (!job || (user.role !== 'administrator' && user.role !== 'business' && job.isApproved === 'proses')) {
             return res.status(404).json({
                 message: 'pekerjaan tidak ditemukan atau belum disetujui',
                 success: false
@@ -174,7 +176,10 @@ export const getJobById = async (req, res) => {
 export const getAdminJobs = async (req, res) => {
     try {
         const adminId = req.id
-        const jobs = await Job.find({created_by:adminId})
+        const jobs = await Job.find({created_by:adminId}).populate({
+            path:'company',
+            createdAt:-1
+        });
         if(!jobs){
             return res.status(404).json({
                 message: 'pekerjaan tidak ditemukan',
@@ -212,3 +217,30 @@ export const deleteJob = async (req, res) => {
         });
     }
 }
+
+export const getJobsByCompanyId = async (req, res) => {
+    try {
+        const companyId = req.params.id; // Get company ID from request parameters
+
+        // Find jobs associated with the company
+        const jobs = await Job.find({ company: companyId }).populate('company').sort({ createdAt: -1 });
+
+        if (jobs.length === 0) {
+            return res.status(404).json({
+                message: 'Pekerjaan tidak ditemukan untuk perusahaan ini',
+                success: false
+            });
+        }
+
+        return res.status(200).json({
+            jobs,
+            success: true
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: 'Terjadi kesalahan pada server.',
+            success: false
+        });
+    }
+};

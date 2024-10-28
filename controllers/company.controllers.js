@@ -1,5 +1,7 @@
 import { Company } from '../models/company.model.js';
 import { User } from '../models/user.model.js'; // Import model User
+import getDataUri from "../utils/datauri.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const registerCompany = async (req, res) => {
     try {
@@ -39,7 +41,6 @@ export const registerCompany = async (req, res) => {
         let company = await Company.create({
             name: companyName,
             userId: userId,
-            isApproved: false // Menandai bahwa perusahaan belum disetujui
         });
 
         return res.status(201).json({
@@ -58,6 +59,7 @@ export const registerCompany = async (req, res) => {
 
 export const approveCompany = async (req, res) => {
     try {
+        const {status} = req.body
         const companyId = req.params.id;
         const company = await Company.findById(companyId);
 
@@ -78,7 +80,7 @@ export const approveCompany = async (req, res) => {
         }
 
         // Set perusahaan sebagai disetujui
-        company.isApproved = true;
+        company.isApproved = status.toLowerCase();
         await company.save();
 
         return res.status(200).json({
@@ -109,7 +111,7 @@ export const getCompany = async (req, res) => {
             companies = await Company.find({ userId }); // Find companies where userId matches
         } else {
             // Other roles (like candidates) can only see approved companies
-            companies = await Company.find({ isApproved: true });
+            companies = await Company.find({ isApproved: 'diterima' });
         }
 
         if (!companies || companies.length === 0) {
@@ -140,7 +142,7 @@ export const getCompanyById = async (req, res) => {
         const user = await User.findById(userId);
 
         // Check user role and company approval status
-        if (!company || (user.role !== 'administrator' && user.role !== 'business' && !company.isApproved)) {
+        if (!company || (user.role !== 'administrator' && user.role !== 'business' && company.isApproved === 'proses')) {
             return res.status(404).json({
                 message: 'Perusahaan tidak ditemukan atau belum disetujui',
                 success: false
@@ -162,7 +164,7 @@ export const getCompanyById = async (req, res) => {
 
 export const updateCompany = async (req, res) => {
     try {
-        const { name, description, website, location, logo } = req.body;
+        const { name, description, website, location } = req.body;
         const companyId = req.params.id;
         const userId = req.id;
 
@@ -177,8 +179,14 @@ export const updateCompany = async (req, res) => {
             });
         }
 
+        let logoUrl = company.logo; // Keep existing logo if not updated
+        if (req.file) {
+            const fileUri = getDataUri(req.file);
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            logoUrl = cloudResponse.secure_url; // Update logo URL
+        }
         // Siapkan data untuk diperbarui
-        const updateData = { name, description, website, location, logo };
+        const updateData = { name, description, website, location, logo:logoUrl };
         const updatedCompany = await Company.findByIdAndUpdate(companyId, updateData, { new: true });
 
         return res.status(200).json({

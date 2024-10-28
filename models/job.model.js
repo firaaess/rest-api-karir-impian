@@ -13,11 +13,11 @@ const jobSchema = new mongoose.Schema({
         type: String
     }],
     salary: {
-        type: Number,
+        type: String,
         required: true
     },
     experienceLevel:{
-        type:Number,
+        type:String,
         required:true,
     },
     location: {
@@ -33,8 +33,9 @@ const jobSchema = new mongoose.Schema({
         required: true
     },
     isApproved:{
-        type:Boolean,
-        default: false
+        type:String,
+        enum:['proses', 'diterima', 'ditolak'],
+        default:'proses'
     },
     company: {
         type: mongoose.Schema.Types.ObjectId,

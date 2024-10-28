@@ -46,7 +46,6 @@ export const register = async (req, res) => {
             const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
             profilePhotoUrl = cloudResponse.secure_url; // Simpan URL foto profil
         }
-
         // Buat pengguna baru
         await User.create({
             fullname,
