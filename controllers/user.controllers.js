@@ -173,8 +173,8 @@ export const updateProfile = async (req, res) => {
         // Handle file upload if a file is provided
         if (req.file) {
             const fileUri = getDataUri(req.file);
-            const cloudResponse =  cloudinary.uploader.upload(fileUri.content);
-            user.profile.profilePhoto = await cloudResponse.secure_url; // Save the cloudinary URL
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            user.profile.profilePhoto =  cloudResponse.secure_url; // Save the cloudinary URL
             user.profile.profilePhotoOriginalName = req.file.originalname; // Save the original file name
         }
 
