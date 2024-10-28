@@ -4,7 +4,7 @@ import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { Job } from '../models/job.model.js';
 
-export const registerCompany = async (req, res) => {
+export const addCompany = async (req, res) => {
     try {
         const { companyName } = req.body;
         const userId = req.id;
@@ -81,13 +81,21 @@ export const approveCompany = async (req, res) => {
         }
 
         // Set perusahaan sebagai disetujui
+        if (status === 'diterima'){
+            company.isApproved = status.toLowerCase();
+            await company.save();
+            return res.status(200).json({
+                message: 'Perusahaan berhasil disetujui',
+                success: true
+            });
+        }
         company.isApproved = status.toLowerCase();
         await company.save();
-
         return res.status(200).json({
-            message: 'Perusahaan berhasil disetujui',
+            message: 'Perusahaan di tolak',
             success: true
         });
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({

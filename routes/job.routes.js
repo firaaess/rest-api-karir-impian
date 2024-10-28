@@ -5,7 +5,7 @@ import { approveJob, deleteJob, getAdminJobs, getAllJob, getJobById, getJobsByCo
 const router = express.Router()
 
 router.route('/post').post(isAuthenticated,postJob)
-router.route('/:id/approve').put(isAuthenticated,approveJob)
+router.route('/:id/approve').put(isAuthenticated, approveJob)
 router.route('/get').get(isAuthenticated,getAllJob)
 router.route('/getbusinessjobs').get(isAuthenticated, getAdminJobs)
 router.route('/getbycompany/:id').get(isAuthenticated, getJobsByCompanyId)

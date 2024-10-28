@@ -2,6 +2,7 @@ import {Job} from '../models/job.model.js'
 import { Company } from '../models/company.model.js'
 import { User } from '../models/user.model.js';
 import { Application } from '../models/application.model.js';
+import { jobBaruMsg } from '../utils/msgEmail.js';
 export const postJob = async (req, res) => {
     try {
         const { title, description, requirements, salary, location, jobType, experience, position, companyId } = req.body;
@@ -72,12 +73,30 @@ export const approveJob = async (req, res) => {
             });
         }
 
+            // Fetch all user emails
+            const users = await User.find({}); // Adjust this query if needed
+            const semuaEmail = users.map(u => u.email).filter(email => email); // Get unique emails
+    
         // Set pekerjaan sebagai disetujui
-        job.isApproved = status // Update status pekerjaan
+        if (status === 'diterima'){
+            job.isApproved = status.toLowerCase() // Update status pekerjaan
+            await job.save(); // Simpan perubahan
+            await jobBaruMsg({
+                title: job.title,
+                companyName: job.company.name,
+                logo: job.company.logo,
+                salary: job.salary,
+                position: job.position,
+                location: job.location}, semuaEmail)
+            return res.status(200).json({
+                message: 'Pekerjaan berhasil disetujui',
+                success: true
+            });
+        }
+        job.isApproved = status.toLowerCase() // Update status pekerjaan
         await job.save(); // Simpan perubahan
-
         return res.status(200).json({
-            message: 'Pekerjaan berhasil disetujui',
+            message: 'Pekerjaan ditolak',
             success: true
         });
     } catch (error) {

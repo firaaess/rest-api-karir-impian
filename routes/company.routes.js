@@ -1,11 +1,11 @@
 import express from 'express'
 import isAuthenticated from '../middlewares/isAuthenticated.js'
-import { approveCompany, deleteCompany, getCompany, getCompanyById, registerCompany, updateCompany } from '../controllers/company.controllers.js'
+import { addCompany, approveCompany, deleteCompany, getCompany, getCompanyById, updateCompany } from '../controllers/company.controllers.js'
 import { singleUpload } from '../middlewares/multer.js'
 
 const router = express.Router()
 
-router.route('/add').post(isAuthenticated ,registerCompany)
+router.route('/add').post(isAuthenticated ,addCompany)
 router.route('/get').get(isAuthenticated,getCompany)
 router.route('/:id/approve').put(isAuthenticated,approveCompany)
 router.route('/get/:id').get(isAuthenticated, getCompanyById)
