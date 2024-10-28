@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Application } from './application.model.js'; // Adjust the path as needed
 
 const jobSchema = new mongoose.Schema({
     title: {
@@ -16,9 +17,9 @@ const jobSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    experienceLevel:{
-        type:String,
-        required:true,
+    experienceLevel: {
+        type: String,
+        required: true,
     },
     location: {
         type: String,
@@ -32,10 +33,10 @@ const jobSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    isApproved:{
-        type:String,
-        enum:['proses', 'diterima', 'ditolak'],
-        default:'proses'
+    isApproved: {
+        type: String,
+        enum: ['proses', 'diterima', 'ditolak'],
+        default: 'proses'
     },
     company: {
         type: mongoose.Schema.Types.ObjectId,
@@ -53,5 +54,12 @@ const jobSchema = new mongoose.Schema({
             ref: 'Application',
         }
     ]
-},{timestamps:true});
+}, { timestamps: true });
+
+// Pre-hook to delete applications when a job is deleted
+jobSchema.pre('remove', async function(next) {
+    await Application.deleteMany({ job: this._id });
+    next();
+});
+
 export const Job = mongoose.model("Job", jobSchema);

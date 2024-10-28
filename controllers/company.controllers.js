@@ -2,6 +2,7 @@ import { Company } from '../models/company.model.js';
 import { User } from '../models/user.model.js'; // Import model User
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
+import { Job } from '../models/job.model.js';
 
 export const registerCompany = async (req, res) => {
     try {
@@ -219,9 +220,14 @@ export const deleteCompany = async (req, res) => {
             });
         }
 
+        // Delete all jobs associated with this company
+        await Job.deleteMany({ company: companyId });
+
+        // Now delete the company
         await Company.findByIdAndDelete(companyId);
+
         return res.status(200).json({
-            message: 'Berhasil menghapus perusahaan',
+            message: 'Perusahaan dan semua pekerjaan terkait berhasil dihapus',
             success: true
         });
     } catch (error) {
@@ -232,3 +238,4 @@ export const deleteCompany = async (req, res) => {
         });
     }
 };
+

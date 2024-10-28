@@ -1,6 +1,7 @@
 import {Job} from '../models/job.model.js'
 import { Company } from '../models/company.model.js'
 import { User } from '../models/user.model.js';
+import { Application } from '../models/application.model.js';
 export const postJob = async (req, res) => {
     try {
         const { title, description, requirements, salary, location, jobType, experience, position, companyId } = req.body;
@@ -196,27 +197,33 @@ export const deleteJob = async (req, res) => {
     try {
         const jobId = req.params.id;
         const job = await Job.findById(jobId);
+        
         if (!job) {
             return res.status(404).json({
-                message: 'pekerjaan tidak ditemukan',
+                message: 'Pekerjaan tidak ditemukan',
                 success: false
             });
         }
 
-        await Job.findByIdAndDelete(jobId);
+        // Delete all applications associated with this job
+        await Application.deleteMany({ job: jobId });
+
+        // Now delete the job
+        await Job.deleteOne({ _id: jobId });
 
         return res.status(200).json({
-            message: 'pekerjaan berhasil dihapus',
+            message: 'Pekerjaan dan aplikasi terkait berhasil dihapus',
             success: true
         });
     } catch (error) {
         console.error(error);
         return res.status(500).json({
-            message: 'terjadi kesalahan saat menghapus pekerjaan',
+            message: 'Terjadi kesalahan saat menghapus pekerjaan',
             success: false
         });
     }
-}
+};
+
 
 export const getJobsByCompanyId = async (req, res) => {
     try {
