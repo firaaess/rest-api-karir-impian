@@ -143,34 +143,6 @@ export const getCompany = async (req, res) => {
     }
 };
 
-export const getCompanyById = async (req, res) => {
-    try {
-        const companyId = req.params.id;
-        const company = await Company.findById(companyId);
-        const userId = req.id; // logged in user id
-        const user = await User.findById(userId);
-
-        // Check user role and company approval status
-        if (!company || (user.role !== 'administrator' && user.role !== 'business' && company.isApproved === 'proses')) {
-            return res.status(404).json({
-                message: 'Perusahaan tidak ditemukan atau belum disetujui',
-                success: false
-            });
-        }
-
-        return res.status(200).json({
-            company,
-            success: true
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: 'Terjadi kesalahan saat mendapatkan perusahaan',
-            success: false
-        });
-    }
-};
-
 export const updateCompany = async (req, res) => {
     try {
         const { name, description, website, location } = req.body;

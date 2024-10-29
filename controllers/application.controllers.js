@@ -113,39 +113,6 @@ export const getApplicants = async (req, res) => {
         });
     }
 };
-
-export const getApplicantById = async (req, res) => {
-    try {
-        const applicationId = req.params.id; // Get application ID from request parameters
-
-        const application = await Application.findById(applicationId)
-            .populate('applicant') // Populate applicant details
-            .populate({
-                path: 'job',
-                populate: 'company' // Optionally populate company details
-            });
-
-        if (!application) {
-            return res.status(404).json({
-                message: 'Pelamar tidak ditemukan',
-                success: false
-            });
-        }
-
-        return res.status(200).json({
-            application,
-            success: true
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: 'Terjadi kesalahan pada server',
-            success: false
-        });
-    }
-};
-
-
 export const updateStatus = async (req, res) => {
     try {
         const { status } = req.body;
@@ -158,14 +125,13 @@ export const updateStatus = async (req, res) => {
             });
         }
 
-        const application = await Application.findById(applicationId).populate('job');
+        const application = await Application.findById(applicationId).populate('job').populate('applicant');
         if (!application) {
             return res.status(404).json({
                 message: "tidak ada pelamar",
                 success: false
             });
         }
-
         if(status === 'diterima') {
             application.status = status.toLowerCase();
             await application.save();
