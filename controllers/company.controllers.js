@@ -209,12 +209,12 @@ export const deleteCompany = async (req, res) => {
     try {
         const companyId = req.params.id;
         const userId = req.id;
-
+        const user = await User.findById(userId)
         // Ambil data perusahaan
         const company = await Company.findById(companyId);
 
         // Cek apakah perusahaan ada dan apakah pengguna adalah pemiliknya
-        if (!company || company.userId.toString() !== userId) {
+        if (!company || company.userId.toString() !== userId && user.role !== 'administrator') {
             return res.status(403).json({
                 message: 'Anda tidak memiliki izin untuk menghapus perusahaan ini.',
                 success: false

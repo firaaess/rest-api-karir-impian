@@ -4,6 +4,9 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { joinWeb } from "../utils/msgEmail.js";
+import { Company } from "../models/company.model.js";
+import { Job } from "../models/job.model.js";
+import { Application } from "../models/application.model.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -173,8 +176,8 @@ export const updateProfile = async (req, res) => {
         // Handle file upload if a file is provided
         if (req.file) {
             const fileUri = getDataUri(req.file);
-            const cloudResponse =  cloudinary.uploader.upload(fileUri.content);
-            user.profile.profilePhoto = await cloudResponse.secure_url; // Save the cloudinary URL
+            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+            user.profile.profilePhoto = cloudResponse.secure_url; // Save the cloudinary URL
             user.profile.profilePhotoOriginalName = req.file.originalname; // Save the original file name
         }
 
@@ -203,30 +206,50 @@ export const updateProfile = async (req, res) => {
 
 export const deleteUser = async (req, res) => {
     try {
-        const userId = req.params.id;
+        const userId = req.params.id; // Ambil ID pengguna dari parameter
         const user = await User.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({
-                message: 'akun tidak ditemukan',
+                message: 'Akun tidak ditemukan',
                 success: false
             });
         }
 
+        // Hapus perusahaan terkait userId
+        const companies = await Company.find({ userId }); // Temukan semua perusahaan yang terkait dengan pengguna
+        const companyIds = companies.map(company => company._id); // Ambil ID perusahaan
+
+        // Hapus semua pekerjaan terkait perusahaan yang dihapus
+        const jobs = await Job.find({ company: { $in: companyIds } }); // Temukan semua pekerjaan yang terkait dengan perusahaan
+        const jobIds = jobs.map(job => job._id); // Ambil ID pekerjaan
+
+        // Hapus semua aplikasi terkait pekerjaan yang dihapus
+        await Application.deleteMany({ job: { $in: jobIds } }); // Hapus semua aplikasi yang berelasi dengan pekerjaan
+        await Application.deleteMany({ applicant: userId }); // Hapus semua aplikasi yang berelasi dengan pekerjaan
+
+        // Hapus semua pekerjaan terkait perusahaan yang dihapus
+        await Job.deleteMany({ company: { $in: companyIds } });
+
+        // Hapus perusahaan yang terkait
+        await Company.deleteMany({ userId });
+
+        // Hapus akun pengguna
         await User.findByIdAndDelete(userId);
 
         return res.status(200).json({
-            message: 'akun berhasil dihapus',
+            message: 'Akun, perusahaan, pekerjaan, dan aplikasi terkait berhasil dihapus',
             success: true
         });
     } catch (error) {
         console.error(error);
         return res.status(500).json({
-            message: 'terjadi kesalahan saat menghapus akunn',
+            message: 'Terjadi kesalahan saat menghapus akun',
             success: false
         });
     }
-}
+};
+
 
 export const getAllUser = async (req, res) => {
     try {
