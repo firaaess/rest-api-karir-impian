@@ -184,7 +184,7 @@ export const updateProfile = async (req, res) => {
         await user.save();
 
         return res.status(200).json({
-            message: "Profile updated successfully.",
+            message: "Selamat Akun Berhasil Di Perbarui",
             user: {
                 _id: user._id,
                 fullname: user.fullname,
