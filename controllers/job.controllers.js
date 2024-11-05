@@ -83,7 +83,7 @@ export const approveJob = async (req, res) => {
             await job.save(); // Simpan perubahan
             await jobBaruMsg({
                 title: job.title,
-                companyName: job.company.name,
+                companyName: job.company.name, 
                 logo: job.company.logo,
                 salary: job.salary,
                 position: job.position,
