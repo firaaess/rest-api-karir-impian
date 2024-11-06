@@ -85,3 +85,72 @@ export const jobBaruMsg = async ({ title, companyName, location, salary, logo },
       return transporter.sendMail(mailOptions);
   }));
 };
+
+// Function to send an acceptance email to the applicant
+export const sendAcceptanceEmail = async ({ to, jobTitle,jobCompany,jobLocation ,applicantName }) => {
+  try {
+      const mailOptions = {
+          from: '"Karir-Impian" <info.karir.impian@gmail.com>',
+          to,
+          subject: `Selamat, Anda diterima untuk posisi ${jobTitle}`,
+          text: `Hai ${applicantName},\n\nSelamat! Anda telah diterima untuk posisi ${jobTitle}. Kami akan segera menghubungi Anda untuk proses selanjutnya.\n\nTerima kasih!`,
+          html: `
+              <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+                  <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                      <div style="background-color: #28a745; color: white; padding: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                          <h1 style="margin: 0;">Selamat, ${applicantName}!</h1>
+                      </div>
+                      <div style="padding: 20px;">
+                          <p>Selamat! Anda telah diterima untuk posisi <strong>${jobTitle}</strong>.</p>
+                          <p>berlokasi di ${jobLocation}</p>
+                          <p>pada perusahaan ${jobCompany}</p>
+                          <p>Kami akan segera menghubungi Anda untuk langkah selanjutnya.</p>
+                          <p>Jika Anda memiliki pertanyaan, silakan hubungi kami di <a href="mailto:info.karir.impian@gmail.com" style="color: #28a745;">info.karir.impian@gmail.com</a>.</p>
+                          <p>Selamat memulai perjalanan karir Anda bersama kami!</p>
+                          <p>Salam hangat,<br>Tim Karir-Impian</p>
+                      </div>
+                  </div>
+              </div>
+          `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Acceptance email sent:', info.response);
+  } catch (error) {
+      console.error('Error sending acceptance email:', error);
+  }
+};
+
+// Function to send a rejection email to the applicant
+export const sendRejectionEmail = async ({ to, jobTitle, jobCompany, applicantName }) => {
+    try {
+        const mailOptions = {
+            from: '"Karir-Impian" <info.karir.impian@gmail.com>',
+            to,
+            subject: `Update Lamaran: Posisi ${jobTitle} di ${jobCompany}`,
+            text: `Halo ${applicantName},\n\nTerima kasih atas ketertarikan Anda untuk posisi ${jobTitle} di ${jobCompany}. Sayangnya, kami telah memutuskan untuk melanjutkan proses dengan kandidat lain. Kami menghargai waktu dan usaha Anda dalam melamar.\n\nKami berharap Anda sukses dalam perjalanan karir Anda.\n\nSalam hangat,\nTim Karir-Impian`,
+            html: `
+                <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+                    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <div style="background-color: #dc3545; color: white; padding: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                            <h1 style="margin: 0;">Halo, ${applicantName}</h1>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p>Terima kasih atas ketertarikan Anda untuk posisi <strong>${jobTitle}</strong> di ${jobCompany}.</p>
+                            <p>Setelah mempertimbangkan beberapa kandidat, kami telah memutuskan untuk melanjutkan proses dengan kandidat lain.</p>
+                            <p>Kami menghargai waktu dan usaha yang telah Anda berikan dan berharap Anda menemukan kesempatan yang sesuai dengan karir impian Anda.</p>
+                            <p>Jika ada pertanyaan lebih lanjut, silakan hubungi kami di <a href="mailto:info.karir.impian@gmail.com" style="color: #dc3545;">info.karir.impian@gmail.com</a>.</p>
+                            <p>Salam hangat,<br>Tim Karir-Impian</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+        };
+  
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Rejection email sent:', info.response);
+    } catch (error) {
+        console.error('Error sending rejection email:', error);
+    }
+  };
+  

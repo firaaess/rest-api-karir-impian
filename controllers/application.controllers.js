@@ -1,5 +1,6 @@
 import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
+import { sendAcceptanceEmail, sendRejectionEmail } from "../utils/msgEmail.js";
 
 export const applyJob = async (req, res) => {
     try {
@@ -125,23 +126,49 @@ export const updateStatus = async (req, res) => {
             });
         }
 
-        const application = await Application.findById(applicationId).populate('job').populate('applicant');
+        const application = await Application.findById(applicationId)
+        .populate({
+            path: 'job',
+            populate: {
+                path: 'company'  // This ensures company is populated within job
+            }
+        })
+        .populate('applicant');
+    
         if (!application) {
             return res.status(404).json({
                 message: "tidak ada pelamar",
                 success: false
             });
         }
-        if(status === 'diterima') {
-            application.status = status.toLowerCase();
-            await application.save();
+
+        // Update the application status
+        application.status = status.toLowerCase();
+        await application.save();
+
+        if (status === 'diterima') {
+            // Call the email function to notify the applicant
+            await sendAcceptanceEmail({
+                to: application.applicant.email, // Applicant's email
+                jobTitle: application.job.title,
+                jobLocation: application.job.location,
+                jobCompany: application.job.company.name,
+                applicantName: application.applicant.fullname
+            });
+
             return res.status(200).json({
-                message: "Berhasil menerima seseorang",
+                message: "Berhasil menerima seseorang dan email telah dikirim",
                 success: true
             });
         }
-        application.status = status.toLowerCase();
-        await application.save();
+
+        await sendRejectionEmail({
+            to: application.applicant.email,
+            jobTitle: application.job.title,
+            jobCompany: application.job.company.name,
+            applicantName: application.applicant.fullname
+        });
+
         return res.status(200).json({
             message: "Berhasil menolak seseorang",
             success: true
