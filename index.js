@@ -29,7 +29,7 @@ app.use('/api/company', companyRouter)
 app.use('/api/job', jobRouter)
 app.use('/api/application', applicationRouter)
 
+connDB()
 app.listen(PORT, () => {
-  connDB()
   console.log('Server running on port:', PORT)
 })
