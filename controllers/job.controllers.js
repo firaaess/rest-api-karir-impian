@@ -247,11 +247,12 @@ export const deleteJob = async (req, res) => {
 export const getJobsByCompanyId = async (req, res) => {
     try {
         const companyId = req.params.id; // Get company ID from request parameters
-
+        const userId = req.id;
+        const user = await User.findById(userId);
         // Find jobs associated with the company
         const jobs = await Job.find({ company: companyId }).populate('company').sort({ createdAt: -1 });
 
-        if (jobs.length === 0) {
+        if (!jobs || (user.role !== 'administrator' && user.role !== 'business' && jobs.isApproved === 'proses')) {
             return res.status(404).json({
                 message: 'Pekerjaan tidak ditemukan untuk perusahaan ini',
                 success: false
