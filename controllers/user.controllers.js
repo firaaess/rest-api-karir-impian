@@ -43,12 +43,19 @@ export const register = async (req, res) => {
 
         let profilePhotoUrl = null;
 
-        // Jika file di-upload, proses upload ke Cloudinary
+        // Validasi bahwa file adalah image
         if (req.file) {
+            if (!req.file.mimetype.startsWith("image/")) {
+                return res.status(400).json({
+                    message: "File yang diunggah harus berupa gambar",
+                    success: false
+                });
+            }
             const fileUri = getDataUri(req.file);
             const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
             profilePhotoUrl = cloudResponse.secure_url; // Simpan URL foto profil
         }
+
         // Buat pengguna baru
         await User.create({
             fullname,
@@ -60,7 +67,7 @@ export const register = async (req, res) => {
                 profilePhoto: profilePhotoUrl,
             }
         });
-        await joinWeb(email, fullname)
+        await joinWeb(email, fullname);
         return res.status(201).json({
             message: "Berhasil membuat akun",
             success: true
@@ -173,8 +180,14 @@ export const updateProfile = async (req, res) => {
             user.password = await bcrypt.hash(newPassword, 10);
         }
 
-        // Handle file upload if a file is provided
+        // Validasi bahwa file adalah image
         if (req.file) {
+            if (!req.file.mimetype.startsWith("image/")) {
+                return res.status(400).json({
+                    message: "File yang diunggah harus berupa gambar",
+                    success: false
+                });
+            }
             const fileUri = getDataUri(req.file);
             const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
             user.profile.profilePhoto = cloudResponse.secure_url; // Save the cloudinary URL
@@ -202,7 +215,7 @@ export const updateProfile = async (req, res) => {
             success: false
         });
     }
-}
+};
 
 export const deleteUser = async (req, res) => {
     try {
