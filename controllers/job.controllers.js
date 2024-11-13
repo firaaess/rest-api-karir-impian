@@ -2,12 +2,13 @@ import {Job} from '../models/job.model.js'
 import { Company } from '../models/company.model.js'
 import { User } from '../models/user.model.js';
 import { Application } from '../models/application.model.js';
-import { jobBaruMsg } from '../utils/msgEmail.js';
+import { jobBaruMsg, jobMenungguPersetujuan } from '../utils/msgEmail.js';
 export const postJob = async (req, res) => {
     try {
         const { title, description, requirements, salary, location, jobType, experience, position, companyId } = req.body;
         const userId = req.id;
 
+        // Validate input
         if (!title || !description || !requirements || !salary || !location || !jobType || !experience || !position || !companyId) {
             return res.status(400).json({
                 message: 'semua data harus terisi',
@@ -15,8 +16,8 @@ export const postJob = async (req, res) => {
             });
         }
 
+        // Find company and verify ownership
         const company = await Company.findById(companyId);
-
         if (!company || company.userId.toString() !== userId) {
             return res.status(403).json({
                 message: 'Anda tidak memiliki izin untuk memperbarui perusahaan ini.',
@@ -24,6 +25,7 @@ export const postJob = async (req, res) => {
             });
         }
 
+        // Create the job with default status "proses"
         const job = await Job.create({
             title,
             description,
@@ -35,10 +37,27 @@ export const postJob = async (req, res) => {
             position,
             company: companyId,
             created_by: userId,
+            isApproved: 'proses'  // Default status set to "proses"
         });
 
+        // Fetch all administrators' emails
+        const admins = await User.find({ role: 'administrator' });
+        const adminEmails = admins.map(admin => admin.email).filter(email => email);  // Get all emails of admins
+
+        if (adminEmails.length > 0) {
+            // Send email to administrators about the new job waiting for approval
+            await jobMenungguPersetujuan({
+                title: job.title,
+                companyName: job.company.name, 
+                logo: job.company.logo,
+                salary: job.salary,
+                position: job.position,
+                location: job.location
+            }, adminEmails);
+        }
+
         return res.status(200).json({
-            message: 'berhasil menambahkan pekerjaan baru',
+            message: 'berhasil menambahkan pekerjaan baru, menunggu persetujuan admin',
             job,
             success: true
         });

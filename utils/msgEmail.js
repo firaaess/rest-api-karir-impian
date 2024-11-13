@@ -154,3 +154,52 @@ export const sendRejectionEmail = async ({ to, jobTitle, jobCompany, applicantNa
     }
   };
   
+  // Function to send email notifications to administrators
+export const sendNewCompanyNotification = async (adminEmails, companyName) => {
+    try {
+        const mailOptions = {
+            from: '"Karir-Impian" <info.karir.impian@gmail.com>',
+            to: adminEmails,
+            subject: `New Company Waiting for Approval`,
+            text: `A new company named "${companyName}" has been added and is waiting for approval.`,
+            html: `<p>A new company named <strong>${companyName}</strong> has been added and is currently waiting for approval. Please review it at your earliest convenience.</p>`,
+        };
+
+        // Sending email to all administrators
+        await Promise.all(adminEmails.map(email => transporter.sendMail({ ...mailOptions, to: email })));
+        console.log('Notification email sent to administrators.');
+    } catch (error) {
+        console.error('Error sending email:', error);
+        throw new Error('Failed to send email notification.');
+    }
+};
+
+// Function to send a notification email about a new job waiting for approval
+export const jobMenungguPersetujuan = async (jobDetails, adminEmails) => {
+    try {
+        const { title, companyName, logo, salary, position, location } = jobDetails;
+        const mailOptions = {
+            from: '"Karir-Impian" <info.karir.impian@gmail.com>',
+            to: adminEmails,
+            subject: `New Job Waiting for Approval: ${title}`,
+            text: `A new job titled "${title}" from "${companyName}" is waiting for approval.`,
+            html: `
+                <p>A new job titled <strong>"${title}"</strong> from <strong>${companyName}</strong> is waiting for approval.</p>
+                <ul>
+                    <li>Position: ${position}</li>
+                    <li>Salary: ${salary}</li>
+                    <li>Location: ${location}</li>
+                    <li><img src="${logo}" alt="${companyName} Logo" /></li>
+                </ul>
+                <p>Please review and approve it as soon as possible.</p>
+            `,
+        };
+
+        // Send email to each administrator
+        await Promise.all(adminEmails.map(email => transporter.sendMail({ ...mailOptions, to: email })));
+        console.log('Notification email sent to administrators.');
+    } catch (error) {
+        console.error('Error sending email:', error);
+        throw new Error('Failed to send job approval notification.');
+    }
+};

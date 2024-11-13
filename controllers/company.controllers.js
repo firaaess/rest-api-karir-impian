@@ -3,12 +3,15 @@ import { User } from '../models/user.model.js'; // Import model User
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { Job } from '../models/job.model.js';
+import { sendNewCompanyNotification } from '../utils/msgEmail.js';
 
+// Function to handle adding a new company
 export const addCompany = async (req, res) => {
     try {
         const { companyName } = req.body;
         const userId = req.id;
 
+        // Validate the request
         if (!companyName) {
             return res.status(400).json({
                 message: 'Nama perusahaan wajib diisi',
@@ -16,6 +19,7 @@ export const addCompany = async (req, res) => {
             });
         }
 
+        // Check if the user exists
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -24,6 +28,7 @@ export const addCompany = async (req, res) => {
             });
         }
 
+        // Check if the user has the correct role
         if (user.role !== 'business') {
             return res.status(403).json({
                 message: 'Hanya pengguna dengan peran business yang dapat mendaftarkan perusahaan.',
@@ -31,6 +36,7 @@ export const addCompany = async (req, res) => {
             });
         }
 
+        // Check if the user already has a company
         const existingCompany = await Company.findOne({ userId });
         if (existingCompany) {
             return res.status(400).json({
@@ -39,13 +45,24 @@ export const addCompany = async (req, res) => {
             });
         }
 
-        let company = await Company.create({
+        // Create the company with "proses" status
+        const company = await Company.create({
             name: companyName,
             userId: userId,
+            status: 'proses' // Default status set to "proses"
         });
 
+        // Fetch all administrator emails
+        const admins = await User.find({ role: 'administrator' });
+        const adminEmails = admins.map(admin => admin.email).filter(email => email);
+
+        if (adminEmails.length > 0) {
+            // Call the service to send an email notification to all administrators
+            await sendNewCompanyNotification(adminEmails, companyName);
+        }
+
         return res.status(201).json({
-            message: 'Daftar perusahaan berhasil, menunggu persetujuan admin.',
+            message: 'Perusahaan berhasil ditambahkan dan menunggu persetujuan admin.',
             company,
             success: true
         });
@@ -57,7 +74,6 @@ export const addCompany = async (req, res) => {
         });
     }
 };
-
 export const approveCompany = async (req, res) => {
     try {
         const {status} = req.body
