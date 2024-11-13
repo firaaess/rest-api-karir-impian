@@ -1,12 +1,13 @@
 import nodemailer from 'nodemailer';
-
+import dotenv from 'dotenv'
+dotenv.config
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
     secure: false, // true for port 465, false for other ports
     auth: {
       user: "info.karir.impian@gmail.com",
-      pass: "kyih dpog idol gyer", // Use an app-specific password for better security
+      pass: process.env.EMAIL_PASS,
     },
 });
 
@@ -158,11 +159,26 @@ export const sendRejectionEmail = async ({ to, jobTitle, jobCompany, applicantNa
 export const sendNewCompanyNotification = async (adminEmails, companyName) => {
     try {
         const mailOptions = {
-            from: '"Karir-Impian" <info.karir.impian@gmail.com>',
+            from: `"Karir-Impian" <info.karir.impian@gmail.com>`,
             to: adminEmails,
-            subject: `New Company Waiting for Approval`,
-            text: `A new company named "${companyName}" has been added and is waiting for approval.`,
-            html: `<p>A new company named <strong>${companyName}</strong> has been added and is currently waiting for approval. Please review it at your earliest convenience.</p>`,
+            subject: `Perusahaan Baru Menunggu Persetujuan: ${companyName}`,
+            text: `Perusahaan ${companyName} baru saja didaftarkan dan sedang menunggu persetujuan.`,
+            html: `
+                <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+                    <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <div style="background-color: #ffcc00; color: white; padding: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                            <h1 style="margin: 0;">Perusahaan Menunggu Persetujuan</h1>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p>Perusahaan <strong>${companyName}</strong> baru saja didaftarkan di platform Karir-Impian dan saat ini sedang menunggu persetujuan.</p>
+                            <p>Harap tinjau aplikasi ini dan lakukan tindakan yang sesuai untuk melanjutkan proses.</p>
+                            <p>Jika Anda memiliki pertanyaan, silakan hubungi kami di <a href="mailto:info.karir.impian@gmail.com" style="color: #ffcc00;">info.karir.impian@gmail.com</a>.</p>
+                            <p>Terima kasih!</p>
+                            <p>Salam hangat,<br>Tim Karir-Impian</p>
+                        </div>
+                    </div>
+                </div>
+            `,
         };
 
         // Sending email to all administrators
@@ -177,19 +193,18 @@ export const sendNewCompanyNotification = async (adminEmails, companyName) => {
 // Function to send a notification email about a new job waiting for approval
 export const jobMenungguPersetujuan = async (jobDetails, adminEmails) => {
     try {
-        const { title, companyName, logo, salary, position, location } = jobDetails;
+        const { title, salary, position, location } = jobDetails;
         const mailOptions = {
             from: '"Karir-Impian" <info.karir.impian@gmail.com>',
             to: adminEmails,
-            subject: `New Job Waiting for Approval: ${title}`,
-            text: `A new job titled "${title}" from "${companyName}" is waiting for approval.`,
+            subject: `Pekerjaan baru menunggu persetujuan: ${title}`,
+            text: `Nama pekerjaan Baru "${title}" sedang menunggu persetujuan.`,
             html: `
-                <p>A new job titled <strong>"${title}"</strong> from <strong>${companyName}</strong> is waiting for approval.</p>
+                <p>Nama pekerjaan <strong>"${title}"</strong> sedang menunggu persetujuan.</p>
                 <ul>
-                    <li>Position: ${position}</li>
-                    <li>Salary: ${salary}</li>
-                    <li>Location: ${location}</li>
-                    <li><img src="${logo}" alt="${companyName} Logo" /></li>
+                    <li>Posisi: ${position}</li>
+                    <li>Gaji: ${salary}</li>
+                    <li>Lokasi: ${location}</li>
                 </ul>
                 <p>Please review and approve it as soon as possible.</p>
             `,

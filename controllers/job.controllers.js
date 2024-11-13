@@ -7,7 +7,6 @@ export const postJob = async (req, res) => {
     try {
         const { title, description, requirements, salary, location, jobType, experience, position, companyId } = req.body;
         const userId = req.id;
-
         // Validate input
         if (!title || !description || !requirements || !salary || !location || !jobType || !experience || !position || !companyId) {
             return res.status(400).json({
@@ -48,8 +47,6 @@ export const postJob = async (req, res) => {
             // Send email to administrators about the new job waiting for approval
             await jobMenungguPersetujuan({
                 title: job.title,
-                companyName: job.company.name, 
-                logo: job.company.logo,
                 salary: job.salary,
                 position: job.position,
                 location: job.location
