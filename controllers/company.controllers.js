@@ -199,6 +199,12 @@ export const updateCompany = async (req, res) => {
 
         let logoUrl = company.logo; // Keep existing logo if not updated
         if (req.file) {
+            if (!req.file.mimetype.startsWith("image/")) {
+                return res.status(400).json({
+                    message: "File yang diunggah harus berupa gambar",
+                    success: false
+                });
+            }
             const fileUri = getDataUri(req.file);
             const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
             logoUrl = cloudResponse.secure_url; // Update logo URL
