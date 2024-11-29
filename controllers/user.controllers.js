@@ -144,7 +144,6 @@ export const logout = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const { fullname, email, phoneNumber, bio, skills, currentPassword, newPassword } = req.body;
-
         const userId = req.id; // middleware authentication
         let user = await User.findById(userId);
 
@@ -175,23 +174,47 @@ export const updateProfile = async (req, res) => {
                     success: false
                 });
             }
-
             // Hash new password and update it
             user.password = await bcrypt.hash(newPassword, 10);
         }
 
-        // Validasi bahwa file adalah image
-        if (req.file) {
-            if (!req.file.mimetype.startsWith("image/")) {
-                return res.status(400).json({
-                    message: "File yang diunggah harus berupa gambar",
-                    success: false
-                });
+        // Validasi dan upload file (gambar atau resume)
+        if (req.files) {
+            const { profilePhoto, resume } = req.files;
+            
+            // Validasi dan upload profile photo jika ada
+            if (profilePhoto && profilePhoto[0]) {
+                const profilePhotoFile = profilePhoto[0]; // Get the file object
+                console.log("Profile photo mimetype:", profilePhotoFile.mimetype);
+                
+                if (!profilePhotoFile.mimetype.startsWith("image/")) {
+                    return res.status(400).json({
+                        message: "File profile photo harus berupa gambar",
+                        success: false
+                    });
+                }
+                const photoUri = getDataUri(profilePhotoFile);
+                const photoResponse = await cloudinary.uploader.upload(photoUri.content);
+                user.profile.profilePhoto = photoResponse.secure_url;
+                user.profile.profilePhotoOriginalName = profilePhotoFile.originalname;
             }
-            const fileUri = getDataUri(req.file);
-            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-            user.profile.profilePhoto = cloudResponse.secure_url; // Save the cloudinary URL
-            user.profile.profilePhotoOriginalName = req.file.originalname; // Save the original file name
+
+            // Validasi dan upload resume jika ada
+            if (resume && resume[0]) {
+                const resumeFile = resume[0]; // Get the file object
+                console.log("Resume mimetype:", resumeFile.mimetype);
+                
+                if (resumeFile.mimetype !== "application/pdf") {
+                    return res.status(400).json({
+                        message: "File resume harus berupa PDF",
+                        success: false
+                    });
+                }
+                const resumeUri = getDataUri(resumeFile);
+                const resumeResponse = await cloudinary.uploader.upload(resumeUri.content);
+                user.profile.resume = resumeResponse.secure_url;
+                user.profile.resumeOriginalName = resumeFile.originalname;
+            }
         }
 
         await user.save();
@@ -216,6 +239,8 @@ export const updateProfile = async (req, res) => {
         });
     }
 };
+
+
 
 export const deleteUser = async (req, res) => {
     try {

@@ -1,5 +1,9 @@
-// multer.js
-import multer from 'multer';
+import multer from "multer";
 
 const storage = multer.memoryStorage();
-export const singleUpload = multer({ storage }).single('file'); // 'file' is the field name
+
+// Konfigurasi untuk mendukung multiple fields
+export const singleUpload = multer({ storage }).fields([
+  { name: "profilePhoto", maxCount: 1 }, // Field untuk foto profil
+  { name: "resume", maxCount: 1 }, // Field untuk resume
+]);
