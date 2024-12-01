@@ -240,8 +240,6 @@ export const updateProfile = async (req, res) => {
     }
 };
 
-
-
 export const deleteUser = async (req, res) => {
     try {
         const userId = req.params.id; // Ambil ID pengguna dari parameter
@@ -292,7 +290,7 @@ export const deleteUser = async (req, res) => {
 export const getAllUser = async (req, res) => {
     try {
         const userId = req.id
-        const users = await User.find({userId})
+        const users = await User.find({})
         if(!users){
             return res.status(404).json({
                 message: 'akun tidak ditemukan',

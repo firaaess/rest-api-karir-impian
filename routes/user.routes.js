@@ -9,6 +9,6 @@ router.post('/login', login);
 router.get('/logout', logout);
 router.post('/update/profile', isAuthenticated, singleUpload, updateProfile);
 router.delete('/delete/:id', isAuthenticated, deleteUser);
-router.get('/getalluser', getAllUser);
+router.get('/getalluser',isAuthenticated, getAllUser);
 
 export default router 
